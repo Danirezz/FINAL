@@ -1,12 +1,12 @@
-#!/bin/bash 
-# Script de inicio para FastAPI en Azure App Service 
-# El puerto lo asigna Azure automáticamente 
+#!/bin/bash
 
-PORT = ${PORT:8000} 
+# Puerto asignado por Azure
+PORT=${PORT:-8000}
 
-echo "==========================================" 
-echo "🚀 Iniciando FastAPI en el puerto $PORT" 
-echo "📁 Archivo principal: app.py" 
-echo "🔧 Instancia de FastAPI: app" 
+echo "=========================================="
+echo "🚀 Iniciando FastAPI en el puerto $PORT"
+echo "📁 Archivo principal: app.py"
+echo "🔧 Instancia de FastAPI: app"
 echo "=========================================="
 
+gunicorn -k uvicorn.workers.UvicornWorker app:app --bind 0.0.0.0:$PORT
