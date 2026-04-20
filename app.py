@@ -6,6 +6,11 @@ from pydantic import BaseModel
 import json, os, hashlib, secrets, time
 
 app = FastAPI()
+
+@app.get("/") 
+def home(): 
+    return {"mensaje": "Mi API esta  funcionando"} 
+    
 templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
