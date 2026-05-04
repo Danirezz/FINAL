@@ -7,24 +7,32 @@ import json, os, hashlib, secrets, time
 
 app = FastAPI()
 
-# 📁 Rutas
-templates = Jinja2Templates(directory="templates")
+# 📁 BASE DIR (CLAVE PARA AZURE)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# 📁 STATIC
+static_path = os.path.join(BASE_DIR, "static")
+os.makedirs(static_path, exist_ok=True)
+app.mount("/static", StaticFiles(directory=static_path), name="static")
+
+# 📁 TEMPLATES
+templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 templates.env.cache = {}
 
-# ⚠️ IMPORTANTE: asegurar que static existe
-if not os.path.exists("static"):
-    os.makedirs("static")
+# 📁 DATA
+data_path = os.path.join(BASE_DIR, "data")
+os.makedirs(data_path, exist_ok=True)
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+USERS_FILE = os.path.join(data_path, "users.json")
 
-USERS_FILE = "data/users.json"
-
+# 👤 USUARIO DEMO
 DEMO_USER = {
     "email": "ejemplo1",
     "name": "Usuario Demo",
     "password": hashlib.sha256("ejemplo1".encode()).hexdigest()
 }
 
+# 📦 FUNCIONES
 def load_users():
     if not os.path.exists(USERS_FILE):
         return {}
@@ -32,13 +40,13 @@ def load_users():
         return json.load(f)
 
 def save_users(users):
-    os.makedirs("data", exist_ok=True)
     with open(USERS_FILE, "w") as f:
         json.dump(users, f, indent=2)
 
 def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
 
+# 📄 MODELOS
 class LoginData(BaseModel):
     email: str
     password: str
@@ -97,3 +105,4 @@ def login(data: LoginData):
         "access_token": token,
         "user": {"name": user["name"], "email": user["email"]}
     }
+```
