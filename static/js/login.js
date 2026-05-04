@@ -1,4 +1,3 @@
-
 const DEMO = { email: 'ejemplo1', password: 'ejemplo1', name: 'Usuario Demo' };
 
 function goDemo(){
@@ -43,7 +42,10 @@ async function doLogin(){
       showAlert('Bienvenido, '+data.user.name+'!','ok');
       setTimeout(()=>{window.location.href='/dashboard';},900);
     } else showAlert(data.detail||'Correo o contraseña incorrectos.');
-  }catch(e){showAlert('No se pudo conectar. Usa las credenciales demo.');}
+  }catch(e){
+  console.error(e);
+  showAlert('Error de conexión con el servidor.');
+  }
   setLoad('btn-login','login-spin','login-txt',false);
 }
 

@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request, HTTPException
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -7,16 +7,18 @@ import json, os, hashlib, secrets, time
 
 app = FastAPI()
 
-@app.get("/") 
-def home(): 
-    return {"mensaje": "Mi API esta  funcionando"} 
-    
+# 📁 Rutas
 templates = Jinja2Templates(directory="templates")
+templates.env.cache = {}
+
+# ⚠️ IMPORTANTE: asegurar que static existe
+if not os.path.exists("static"):
+    os.makedirs("static")
+
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 USERS_FILE = "data/users.json"
 
-# Usuario demo hardcodeado (siempre disponible para pruebas)
 DEMO_USER = {
     "email": "ejemplo1",
     "name": "Usuario Demo",
@@ -46,6 +48,7 @@ class RegisterData(BaseModel):
     email: str
     password: str
 
+# 🌐 RUTAS HTML
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
@@ -54,37 +57,42 @@ def home(request: Request):
 def dashboard(request: Request):
     return templates.TemplateResponse("dashboard.html", {"request": request})
 
+# 🔐 API
 @app.post("/api/register")
 def register(data: RegisterData):
     if data.email == DEMO_USER["email"]:
-        raise HTTPException(status_code=400, detail="Este correo ya está registrado.")
+        raise HTTPException(status_code=400, detail="Correo ya registrado.")
+
     users = load_users()
+
     if data.email in users:
-        raise HTTPException(status_code=400, detail="Este correo ya está registrado.")
+        raise HTTPException(status_code=400, detail="Correo ya registrado.")
+
     users[data.email] = {
         "name": data.name,
         "email": data.email,
         "password": hash_password(data.password),
         "created_at": time.time()
     }
+
     save_users(users)
-    return {"message": "Usuario creado exitosamente"}
+
+    return {"message": "Usuario creado"}
 
 @app.post("/api/login")
 def login(data: LoginData):
-    # Verificar usuario demo primero
     if data.email == DEMO_USER["email"] and hash_password(data.password) == DEMO_USER["password"]:
         token = secrets.token_hex(32)
-        return {
-            "access_token": token,
-            "user": {"name": DEMO_USER["name"], "email": DEMO_USER["email"]}
-        }
-    # Verificar usuarios registrados
+        return {"access_token": token, "user": DEMO_USER}
+
     users = load_users()
     user = users.get(data.email)
+
     if not user or user["password"] != hash_password(data.password):
-        raise HTTPException(status_code=401, detail="Correo o contraseña incorrectos.")
+        raise HTTPException(status_code=401, detail="Credenciales incorrectas.")
+
     token = secrets.token_hex(32)
+
     return {
         "access_token": token,
         "user": {"name": user["name"], "email": user["email"]}
