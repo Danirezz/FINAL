@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width,initial-scale=1" name="viewport"/>
+  <title>
+   WBill$ — Dashboard
+  </title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&amp;family=Cinzel:wght@600&amp;display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js">
+  </script>
+  <link href="../static/css/dashboard.css" rel="stylesheet"/>
+ </head>
+ <body>
+  <div class="save-ov" id="save-ov" onclick="closeSave()">
+   <div class="cf-wrap" id="cf-wrap">
+   </div>
+   <div class="save-bub">
+    <div class="save-ico" id="s-ico">
+     ✅
+    </div>
+    <div class="save-msg" id="s-msg">
+    </div>
+    <div class="save-sub" id="s-sub">
+    </div>
+   </div>
+  </div>
+  <div class="topbar">
+   <div class="top-left">
+    <div class="logo-ico">
+     <img alt="WBill$" src="data:image/jpeg;base64,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"/>
+    </div>
+    <div>
+     <div class="logo-name">
+      WBill
+      <span>
+       $
+      </span>
+     </div>
+     <div class="logo-tag">
+      Your Money, Your Rules
+     </div>
+    </div>
+   </div>
+   <div class="top-right">
+    <span class="uname" id="topuser">
+     Hola,
+    </span>
+    <div class="av" id="topav">
+     JD
+    </div>
+   </div>
+  </div>
+  <div class="page">
+   <div>
+    <div class="welcome">
+     ¡Bienvenido,
+     <span id="wname">
+      Juan
+     </span>
+     ! 👋
+    </div>
+    <div class="month-badge">
+     📅 Revisando:
+     <b>
+      Abril 2026
+     </b>
+    </div>
+   </div>
+   <div>
+    <div class="sec-lbl">
+     Revisa tu mes
+    </div>
+    <div class="kpis">
+     <div class="kpi bal">
+      <div class="kl">
+       Balance
+      </div>
+      <div class="ku">
+       COP
+      </div>
+      <div class="kv" id="kbal">
+       $0
+      </div>
+     </div>
+     <div class="kpi gas">
+      <div class="kl">
+       Gastos
+      </div>
+      <div class="ku">
+       COP
+      </div>
+      <div class="kv" id="kgas">
+       $0
+      </div>
+     </div>
+     <div class="kpi ing">
+      <div class="kl">
+       Ingresos
+      </div>
+      <div class="ku">
+       COP
+      </div>
+      <div class="kv" id="king">
+       $0
+      </div>
+     </div>
+    </div>
+   </div>
+   <div class="action-btns">
+    <button class="abtn" id="btn-ing" onclick="selectTipo('ingreso')">
+     ＋ Nuevo Ingreso
+    </button>
+    <button class="abtn" id="btn-gas" onclick="selectTipo('gasto')">
+     ＋ Nuevo Gasto
+    </button>
+   </div>
+   <div class="mov-form" id="mov-form">
+    <div class="form-ttl" id="form-ttl">
+    </div>
+    <div>
+     <div class="fl">
+      1. Categoría
+     </div>
+     <div class="cat-sel" id="cat-sel">
+     </div>
+     <div class="nc-form" id="nc-form">
+      <div style="font-size:12px;color:var(--gold);font-weight:600">
+       Nueva categoría
+      </div>
+      <div style="display:flex;gap:8px">
+       <input class="fi" id="nc-name" placeholder="Nombre..." style="flex:1" type="text"/>
+       <input class="fi" id="nc-emoji" placeholder="🏷️" style="width:56px;text-align:center" type="text"/>
+      </div>
+      <button onclick="addCat()" style="padding:7px;background:rgba(201,168,76,.15);border:1px solid var(--gold);border-radius:8px;color:var(--gold);font-size:12px;cursor:pointer;font-family:inherit">
+       + Agregar categoría
+      </button>
+     </div>
+    </div>
+    <div>
+     <div class="fl">
+      2. Monto (COP)
+     </div>
+     <input class="fi" id="f-monto" oninput="fmtMonto(this)" placeholder="$0" type="text"/>
+    </div>
+    <div>
+     <div class="fl">
+      3. Descripción
+      <span style="color:var(--mut);font-size:9px;text-transform:none;letter-spacing:0">
+       (opcional)
+      </span>
+     </div>
+     <input class="fi" id="f-desc" placeholder="Ej: Almuerzo..." type="text"/>
+    </div>
+    <div>
+     <div class="fl">
+      4. Fecha
+     </div>
+     <input class="fi" id="f-fecha" type="date"/>
+    </div>
+    <button class="bsv" onclick="guardar()">
+     Guardar movimiento
+    </button>
+    <div class="af" id="af">
+    </div>
+   </div>
+   <div class="card">
+    <div class="sec-lbl">
+     ↓ Historial de movimientos
+     <a>
+      Ver todos →
+     </a>
+    </div>
+    <div class="txs" id="tx-list">
+     <div class="tx" data-cat="Alimentación">
+      <div class="tico" style="background:rgba(240,208,128,.08)">
+       🍔
+      </div>
+      <div class="ti">
+       <div class="tn">
+        Rappi
+       </div>
+       <div class="tc2">
+        Alimentación
+       </div>
+      </div>
+      <div class="ta">
+       <div class="tam neg">
+        -$24.500
+       </div>
+       <div class="td">
+        Hoy
+       </div>
+      </div>
+     </div>
+     <div class="tx" data-cat="Salario">
+      <div class="tico" style="background:rgba(78,205,196,.08)">
+       💼
+      </div>
+      <div class="ti">
+       <div class="tn">
+        Salario Abril
+       </div>
+       <div class="tc2">
+        Salario
+       </div>
+      </div>
+      <div class="ta">
+       <div class="tam pos">
+        +$4.500.000
+       </div>
+       <div class="td">
+        Hoy
+       </div>
+      </div>
+     </div>
+     <div class="tx" data-cat="Transporte">
+      <div class="tico" style="background:rgba(201,168,76,.08)">
+       🚌
+      </div>
+      <div class="ti">
+       <div class="tn">
+        TransMilenio
+       </div>
+       <div class="tc2">
+        Transporte
+       </div>
+      </div>
+      <div class="ta">
+       <div class="tam neg">
+        -$3.200
+       </div>
+       <div class="td">
+        Ayer
+       </div>
+      </div>
+     </div>
+     <div class="tx" data-cat="Ocio">
+      <div class="tico" style="background:rgba(224,85,85,.08)">
+       🎮
+      </div>
+      <div class="ti">
+       <div class="tn">
+        Netflix
+       </div>
+       <div class="tc2">
+        Ocio
+       </div>
+      </div>
+      <div class="ta">
+       <div class="tam neg">
+        -$52.900
+       </div>
+       <div class="td">
+        02 abr
+       </div>
+      </div>
+     </div>
+    </div>
+   </div>
+   <div>
+    <div class="sec-lbl">
+     Categorías
+    </div>
+    <div class="cats-g" id="cats-g">
+    </div>
+    <button class="ver-btn" onclick="toggleAll()">
+     ☰ Ver todas las categorías
+    </button>
+    <div class="all-p" id="all-p">
+     <div style="font-size:12px;color:var(--mut)">
+      Todas tus categorías
+     </div>
+     <div id="all-list" style="display:flex;flex-wrap:wrap;gap:8px">
+     </div>
+    </div>
+    <div class="cat-h" id="cat-h">
+     <div class="ch-ttl" id="ch-ttl">
+     </div>
+     <div id="ch-list">
+     </div>
+    </div>
+   </div>
+   <div class="sec-lbl" style="margin-bottom:0">
+    Gráficas
+   </div>
+   <div class="charts-row">
+    <div class="chart-c">
+     <div class="chart-ttl">
+      Ingresos · Gastos · Ahorro
+     </div>
+     <div class="ctabs" id="tabs-bar">
+     </div>
+     <div id="bar-areas">
+     </div>
+     <div class="mleg">
+      <div class="li">
+       <div class="ld" style="background:#4ECDC4">
+       </div>
+       Ingresos
+      </div>
+      <div class="li">
+       <div class="ld" style="background:#E05555">
+       </div>
+       Gastos
+      </div>
+      <div class="li">
+       <div class="ld" style="background:#C9A84C">
+       </div>
+       Ahorro
+      </div>
+     </div>
+    </div>
+    <div class="chart-c">
+     <div class="chart-ttl">
+      Gastos por categoría
+     </div>
+     <div class="ctabs" id="tabs-don">
+     </div>
+     <div id="don-areas">
+     </div>
+    </div>
+   </div>
+  </div>
+  <script src="../static/js/dashboard.js">
+  </script>
+ </body>
+</html>
