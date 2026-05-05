@@ -4,9 +4,16 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import json, os, hashlib, secrets, time
+from pathlib import Path
 
 app = FastAPI()
 
+BASE_DIR = Path(__file__).resolve().parent
+app.mount(
+    "/static",
+    StaticFiles(directory=str(BASE_DIR / "static")),
+    name="static"
+)
 # 📁 BASE DIR (CLAVE PARA AZURE)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
