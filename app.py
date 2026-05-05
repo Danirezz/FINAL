@@ -64,12 +64,9 @@ class RegisterData(BaseModel):
     password: str
 
 # 🌐 RUTAS HTML
-@app.get("/")
-def root():
-    return {"status": "ok"}
-    
+
 @app.get("/", response_class=HTMLResponse)
-def home(request: Request):
+async def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 @app.get("/dashboard", response_class=HTMLResponse)
