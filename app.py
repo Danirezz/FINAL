@@ -105,4 +105,3 @@ def login(data: LoginData):
         "access_token": token,
         "user": {"name": user["name"], "email": user["email"]}
     }
-```
