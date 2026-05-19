@@ -1,59 +1,35 @@
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-import json, os, hashlib, secrets, time
+
+from services.auth_service import AuthService
+
 from pathlib import Path
 
 app = FastAPI()
 
 BASE_DIR = Path(__file__).resolve().parent
+
+# STATIC
 app.mount(
     "/static",
     StaticFiles(directory=str(BASE_DIR / "static")),
     name="static"
 )
-# 📁 BASE DIR (CLAVE PARA AZURE)
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# 📁 STATIC
-static_path = os.path.join(BASE_DIR, "static")
-os.makedirs(static_path, exist_ok=True)
-app.mount("/static", StaticFiles(directory=static_path), name="static")
+# TEMPLATES
+templates = Jinja2Templates(
+    directory=str(BASE_DIR / "templates")
+)
 
-# 📁 TEMPLATES
-templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
+# IMPORTANTE
 templates.env.cache = {}
 
-# 📁 DATA
-data_path = os.path.join(BASE_DIR, "data")
-os.makedirs(data_path, exist_ok=True)
+auth_service = AuthService()
 
-USERS_FILE = os.path.join(data_path, "users.json")
-
-# 👤 USUARIO DEMO
-DEMO_USER = {
-    "email": "ejemplo1",
-    "name": "Usuario Demo",
-    "password": hashlib.sha256("ejemplo1".encode()).hexdigest()
-}
-
-# 📦 FUNCIONES
-def load_users():
-    if not os.path.exists(USERS_FILE):
-        return {}
-    with open(USERS_FILE, "r") as f:
-        return json.load(f)
-
-def save_users(users):
-    with open(USERS_FILE, "w") as f:
-        json.dump(users, f, indent=2)
-
-def hash_password(password: str) -> str:
-    return hashlib.sha256(password.encode()).hexdigest()
-
-# 📄 MODELOS
+# MODELOS
 class LoginData(BaseModel):
     email: str
     password: str
@@ -63,53 +39,26 @@ class RegisterData(BaseModel):
     email: str
     password: str
 
-# 🌐 RUTAS HTML
-
+# RUTAS HTML
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(
+        "index.html",
+        {"request": request}
+    )
 
 @app.get("/dashboard", response_class=HTMLResponse)
-def dashboard(request: Request):
-    return templates.TemplateResponse("dashboard.html", {"request": request})
+async def dashboard(request: Request):
+    return templates.TemplateResponse(
+        "dashboard.html",
+        {"request": request}
+    )
 
-# 🔐 API
-@app.post("/api/register")
-def register(data: RegisterData):
-    if data.email == DEMO_USER["email"]:
-        raise HTTPException(status_code=400, detail="Correo ya registrado.")
-
-    users = load_users()
-
-    if data.email in users:
-        raise HTTPException(status_code=400, detail="Correo ya registrado.")
-
-    users[data.email] = {
-        "name": data.name,
-        "email": data.email,
-        "password": hash_password(data.password),
-        "created_at": time.time()
-    }
-
-    save_users(users)
-
-    return {"message": "Usuario creado"}
-
+# API
 @app.post("/api/login")
 def login(data: LoginData):
-    if data.email == DEMO_USER["email"] and hash_password(data.password) == DEMO_USER["password"]:
-        token = secrets.token_hex(32)
-        return {"access_token": token, "user": DEMO_USER}
+    return auth_service.login(data)
 
-    users = load_users()
-    user = users.get(data.email)
-
-    if not user or user["password"] != hash_password(data.password):
-        raise HTTPException(status_code=401, detail="Credenciales incorrectas.")
-
-    token = secrets.token_hex(32)
-
-    return {
-        "access_token": token,
-        "user": {"name": user["name"], "email": user["email"]}
-    }
+@app.post("/api/register")
+def register(data: RegisterData):
+    return auth_service.register(data)
