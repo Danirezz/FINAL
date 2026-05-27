@@ -1,11 +1,10 @@
 from sqlalchemy.orm import Session
 from database.connection import SessionLocal
 from database.models import User
-
 from factories.user_factory import UserFactory
 from strategies.sha256_strategy import SHA256Strategy
 from decorators.log_decorator import log_action
-
+from fastapi import HTTPException
 from observers.user_subject import UserSubject
 from observers.email_observer import EmailObserver
 from observers.logger_observer import LoggerObserver
@@ -49,16 +48,22 @@ class AuthService:
     def register(self, data):
 
         if not self.valid_email(data.email):
-            return {"error": "Correo inválido"}
+            raise HTTPException(
+            status_code=400,
+            detail="Correo inválido"
+            )
 
         if not self.valid_username(data.name):
-            return {"error": "Nombre inválido"}
+            raise HTTPException(
+            status_code=400,
+            detail="Nombre inválido"
+            )
 
         if not self.valid_password(data.password):
-            return {
-                "error":
-                "La contraseña debe tener 8 caracteres, una mayúscula y un número"
-            }
+            raise HTTPException (
+                status_code=400,
+                detail="La contraseña debe tener 8 caracteres, una mayúscula y un número"
+            )
 
         existing_user = (
             self.db.query(User)
@@ -67,7 +72,10 @@ class AuthService:
         )
 
         if existing_user:
-            return {"error": "Usuario ya existe"}
+            raise HTTPException(
+                status_code=409,
+                detail="Usuario ya existe"
+            )   
 
         hashed_password = self.hash_strategy.hash(data.password)
 
@@ -103,12 +111,18 @@ class AuthService:
         )
 
         if not user:
-            return {"error": "Usuario no encontrado"}
+            raise HTTPException(
+                status_code=404,
+                detail="Usuario no encontrado"
+            )
 
         hashed_password = self.hash_strategy.hash(data.password)
 
         if user.password != hashed_password:
-            return {"error": "Contraseña incorrecta"}
+            raise HTTPException(
+                status_code=401,
+                detail="Contraseña incorrecta"
+            )
 
         token = secrets.token_hex(32)
 

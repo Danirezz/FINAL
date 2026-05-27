@@ -68,18 +68,13 @@ function setLoad(b, s, t, l) {
    LOGIN
 ========================= */
 
-async function doLogin() {
+async function doLogin(){
 
-  const email =
-    document.getElementById('l-email').value.trim();
+  const email = document.getElementById('l-email').value.trim();
+  const pass = document.getElementById('l-pass').value;
 
-  const pass =
-    document.getElementById('l-pass').value;
-
-  if (!email || !pass) {
-    return showAlert(
-      'Por favor completa todos los campos.'
-    );
+  if(!email || !pass){
+    return showAlert('Por favor completa todos los campos.');
   }
 
   hideAlert();
@@ -91,33 +86,81 @@ async function doLogin() {
     true
   );
 
-  /* DEMO */
-  if (
-    email === DEMO.email &&
-    pass === DEMO.password
-  ) {
+  try{
 
-    localStorage.setItem(
-      'wbills_token',
-      'demo-token-wbills'
-    );
-
-    localStorage.setItem(
-      'wbills_user',
-      JSON.stringify({
-        name: DEMO.name,
-        email: DEMO.email
+    const res = await fetch('/api/login', {
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json'
+      },
+      body: JSON.stringify({
+        email,
+        password: pass
       })
-    );
+    });
+
+    const data = await res.json();
+
+    if(res.ok){
+
+      localStorage.setItem(
+        'wbills_token',
+        data.access_token
+      );
+
+      localStorage.setItem(
+        'wbills_user',
+        JSON.stringify(data.user)
+      );
+
+      showAlert(
+        'Bienvenido, ' + data.user.name + '!',
+        'ok'
+      );
+
+      setTimeout(() => {
+        window.location.href = '/dashboard';
+      }, 900);
+
+    }
+
+    else if(res.status === 401){
+
+      showAlert('Contraseña incorrecta.');
+
+    }
+
+    else if(res.status === 404){
+
+      showAlert('Usuario no encontrado.');
+
+    }
+
+    else if(res.status === 400){
+
+      showAlert(data.detail);
+
+    }
+
+    else{
+
+      showAlert('Error inesperado.');
+
+    }
+
+  }
+
+  catch(e){
+
+    console.error(e);
 
     showAlert(
-      'Bienvenido, ' + DEMO.name + '!',
-      'ok'
+      'Error de conexión con el servidor.'
     );
 
-    setTimeout(() => {
-      window.location.href = '/dashboard';
-    }, 900);
+  }
+
+  finally{
 
     setLoad(
       'btn-login',
@@ -126,133 +169,48 @@ async function doLogin() {
       false
     );
 
-    return;
   }
 
-  /* API REAL */
-  try {
-
-    const res = await fetch('/api/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        email,
-        password: pass
-      })
-    });
-
-    const data = await res.json();
-
-    console.log(data);
-
-    /* ERROR BACKEND */
-    if (data.error) {
-
-      showAlert(data.error);
-
-      setLoad(
-        'btn-login',
-        'login-spin',
-        'login-txt',
-        false
-      );
-
-      return;
-    }
-
-    /* VALIDAR USER */
-    if (!data.user) {
-
-      showAlert(
-        'Respuesta inválida del servidor.'
-      );
-
-      setLoad(
-        'btn-login',
-        'login-spin',
-        'login-txt',
-        false
-      );
-
-      return;
-    }
-
-    /* LOGIN OK */
-    localStorage.setItem(
-      'wbills_token',
-      data.access_token
-    );
-
-    localStorage.setItem(
-      'wbills_user',
-      JSON.stringify(data.user)
-    );
-
-    showAlert(
-      'Bienvenido, ' + data.user.name + '!',
-      'ok'
-    );
-
-    setTimeout(() => {
-      window.location.href = '/dashboard';
-    }, 900);
-
-  } catch (e) {
-
-    console.error(e);
-
-    showAlert(
-      'Error de conexión con el servidor.'
-    );
-  }
-
-  setLoad(
-    'btn-login',
-    'login-spin',
-    'login-txt',
-    false
-  );
 }
 
 /* =========================
    REGISTRO
 ========================= */
 
-async function doReg() {
+async function doReg(){
 
-  const name =
-    document.getElementById('r-name').value.trim();
+  const name = document
+    .getElementById('r-name')
+    .value
+    .trim();
 
-  const email =
-    document.getElementById('r-email').value.trim();
+  const email = document
+    .getElementById('r-email')
+    .value
+    .trim();
 
-  const pass =
-    document.getElementById('r-pass').value;
+  const pass = document
+    .getElementById('r-pass')
+    .value;
 
-  const pass2 =
-    document.getElementById('r-pass2').value;
+  const pass2 = document
+    .getElementById('r-pass2')
+    .value;
 
-  if (!name || !email || !pass || !pass2) {
+  if(!name || !email || !pass || !pass2){
 
     return showAlert(
       'Por favor completa todos los campos.'
     );
+
   }
 
-  if (pass.length < 8) {
-
-    return showAlert(
-      'La contraseña debe tener mínimo 8 caracteres.'
-    );
-  }
-
-  if (pass !== pass2) {
+  if(pass !== pass2){
 
     return showAlert(
       'Las contraseñas no coinciden.'
     );
+
   }
 
   hideAlert();
@@ -264,71 +222,92 @@ async function doReg() {
     true
   );
 
-  try {
+  try{
 
     const res = await fetch('/api/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
+
+      method:'POST',
+
+      headers:{
+        'Content-Type':'application/json'
       },
+
       body: JSON.stringify({
         name,
         email,
         password: pass
       })
+
     });
 
     const data = await res.json();
 
-    console.log(data);
+    if(res.ok){
 
-    /* ERROR BACKEND */
-    if (data.error) {
-
-      showAlert(data.error);
-
-      setLoad(
-        'btn-reg',
-        'reg-spin',
-        'reg-txt',
-        false
+      showAlert(
+        'Cuenta creada correctamente.',
+        'ok'
       );
 
-      return;
+      setTimeout(() => {
+
+        switchTab('login');
+
+        hideAlert();
+
+        document.getElementById(
+          'l-email'
+        ).value = email;
+
+      }, 1400);
+
     }
 
-    /* REGISTRO OK */
-    showAlert(
-      'Cuenta creada! Inicia sesión ahora.',
-      'ok'
-    );
+    else if(res.status === 409){
 
-    setTimeout(() => {
+      showAlert(
+        'El correo ya está registrado.'
+      );
 
-      switchTab('login');
+    }
 
-      hideAlert();
+    else if(res.status === 400){
 
-      document.getElementById('l-email').value =
-        email;
+      showAlert(data.detail);
 
-    }, 1400);
+    }
 
-  } catch (e) {
+    else{
+
+      showAlert(
+        'No se pudo crear la cuenta.'
+      );
+
+    }
+
+  }
+
+  catch(e){
 
     console.error(e);
 
     showAlert(
       'No se pudo conectar con el servidor.'
     );
+
   }
 
-  setLoad(
-    'btn-reg',
-    'reg-spin',
-    'reg-txt',
-    false
-  );
+  finally{
+
+    setLoad(
+      'btn-reg',
+      'reg-spin',
+      'reg-txt',
+      false
+    );
+
+  }
+
 }
 
 /* =========================
