@@ -19,3 +19,5 @@ __pycache__/
 bin/ 
 obj/ 
 deploy.zip 
+# base de datos
+app.db
