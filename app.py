@@ -10,8 +10,11 @@ from pathlib import Path
 from schemas.movement_schema import MovementRequest
 from database.connection import engine
 from database.models import Base
+from services.movement_service import MovementService
 
 income_service = IncomeService()
+
+movement_service = MovementService()
 
 expense_service = ExpenseService()
 
@@ -81,3 +84,14 @@ def create_income(data: MovementRequest):
 def create_expense(data: MovementRequest):
 
     return expense_service.create(data)
+
+@app.post("/api/movements")
+def create_movement(data: MovementRequest):
+
+    return movement_service.create_movement(data)
+
+
+@app.get("/api/movements/{email}")
+def get_movements(email: str):
+
+    return movement_service.get_user_movements(email)

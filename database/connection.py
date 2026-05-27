@@ -1,7 +1,11 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
+import os
 
-DATABASE_URL = "sqlite:///./app.db"
+if os.getenv("WEBSITE_HOSTNAME"):
+    DATABASE_URL = "sqlite:////home/site/wwwroot/app.db"
+else:
+    DATABASE_URL = "sqlite:///./app.db"
 
 engine = create_engine(
     DATABASE_URL,
