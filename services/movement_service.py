@@ -74,3 +74,51 @@ class MovementService:
             }
             for m in movements
         ]
+
+    def update_movement(self, movement_id, data):
+
+        movement = (
+            self.db.query(Movement)
+            .filter(Movement.id == movement_id)
+            .first()
+        )
+
+        if not movement:
+            raise HTTPException(
+                status_code=404,
+                detail="Movimiento no encontrado"
+            )
+
+        movement.type = data.type
+        movement.amount = data.amount
+        movement.category = data.category
+        movement.description = data.description
+
+        self.db.commit()
+        self.db.refresh(movement)
+
+        return {
+            "message": "Movimiento actualizado"
+        }
+
+    def delete_movement(self, movement_id):
+
+        movement = (
+            self.db.query(Movement)
+            .filter(Movement.id == movement_id)
+            .first()
+        )
+
+        if not movement:
+            raise HTTPException(
+                status_code=404,
+                detail="Movimiento no encontrado"
+            )
+
+        self.db.delete(movement)
+
+        self.db.commit()
+
+        return {
+            "message": "Movimiento eliminado"
+        }
