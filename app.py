@@ -95,3 +95,24 @@ def create_movement(data: MovementRequest):
 def get_movements(email: str):
 
     return movement_service.get_user_movements(email)
+
+@app.put("/api/movements/{movement_id}")
+def update_movement(
+    movement_id: int,
+    data: MovementRequest
+):
+
+    return movement_service.update_movement(
+        movement_id,
+        data
+    )
+
+
+@app.delete("/api/movements/{movement_id}")
+def delete_movement(
+    movement_id: int
+):
+
+    return movement_service.delete_movement(
+        movement_id
+    )
