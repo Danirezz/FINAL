@@ -1,124 +1,110 @@
-from sqlalchemy.orm import Session
-
 from database.connection import SessionLocal
 from database.models import User, Movement
-
 from fastapi import HTTPException
 
 
 class MovementService:
 
-    def __init__(self):
-
-        self.db: Session = SessionLocal()
-
     def create_movement(self, data):
+        db = SessionLocal()
+        try:
+            user = db.query(User).filter(User.email == data.user_email).first()
+            if not user:
+                raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
-        user = (
-            self.db.query(User)
-            .filter(User.email == data.user_email)
-            .first()
-        )
+            tipo = data.type.lower().strip()
+            if tipo not in ("ingreso", "gasto"):
+                raise HTTPException(status_code=400, detail="Tipo inválido. Use 'ingreso' o 'gasto'")
 
-        if not user:
-            raise HTTPException(
-                status_code=404,
-                detail="Usuario no encontrado"
+            movement = Movement(
+                type=tipo,
+                amount=abs(data.amount),
+                category=data.category,
+                description=data.description,
+                date=getattr(data, 'date', None),
+                user_id=user.id
             )
+            db.add(movement)
+            db.commit()
+            db.refresh(movement)
+            return {"message": "Movimiento creado"}
+        except HTTPException:
+            raise
+        except Exception as e:
+            db.rollback()
+            raise HTTPException(status_code=500, detail=str(e))
+        finally:
+            db.close()
 
-        movement = Movement(
-            type=data.type,
-            amount=data.amount,
-            category=data.category,
-            description=data.description,
-            user_id=user.id
-        )
+    def get_user_movements(self, email: str):
+        db = SessionLocal()
+        try:
+            user = db.query(User).filter(User.email == email).first()
+            if not user:
+                raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
-        self.db.add(movement)
-
-        self.db.commit()
-
-        self.db.refresh(movement)
-
-        return {
-            "message": "Movimiento creado"
-        }
-
-    def get_user_movements(self, email):
-
-        user = (
-            self.db.query(User)
-            .filter(User.email == email)
-            .first()
-        )
-
-        if not user:
-            raise HTTPException(
-                status_code=404,
-                detail="Usuario no encontrado"
+            movements = (
+                db.query(Movement)
+                .filter(Movement.user_id == user.id)
+                .order_by(Movement.id.desc())
+                .all()
             )
+            return [
+                {
+                    "id":          m.id,
+                    "type":        m.type,
+                    "amount":      m.amount,
+                    "category":    m.category,
+                    "description": m.description,
+                    "date":        m.date
+                }
+                for m in movements
+            ]
+        except HTTPException:
+            raise
+        finally:
+            db.close()
 
-        movements = (
-            self.db.query(Movement)
-            .filter(Movement.user_id == user.id)
-            .all()
-        )
+    def update_movement(self, movement_id: int, data):
+        db = SessionLocal()
+        try:
+            movement = db.query(Movement).filter(Movement.id == movement_id).first()
+            if not movement:
+                raise HTTPException(status_code=404, detail="Movimiento no encontrado")
 
-        return [
-            {
-                "id": m.id,
-                "type": m.type,
-                "amount": m.amount,
-                "category": m.category,
-                "description": m.description
-            }
-            for m in movements
-        ]
+            tipo = data.type.lower().strip()
+            if tipo not in ("ingreso", "gasto"):
+                raise HTTPException(status_code=400, detail="Tipo inválido")
 
-    def update_movement(self, movement_id, data):
+            movement.type        = tipo
+            movement.amount      = abs(data.amount)
+            movement.category    = data.category
+            movement.description = data.description
+            movement.date        = getattr(data, 'date', movement.date)
+            db.commit()
+            db.refresh(movement)
+            return {"message": "Movimiento actualizado"}
+        except HTTPException:
+            raise
+        except Exception as e:
+            db.rollback()
+            raise HTTPException(status_code=500, detail=str(e))
+        finally:
+            db.close()
 
-        movement = (
-            self.db.query(Movement)
-            .filter(Movement.id == movement_id)
-            .first()
-        )
-
-        if not movement:
-            raise HTTPException(
-                status_code=404,
-                detail="Movimiento no encontrado"
-            )
-
-        movement.type = data.type
-        movement.amount = data.amount
-        movement.category = data.category
-        movement.description = data.description
-
-        self.db.commit()
-        self.db.refresh(movement)
-
-        return {
-            "message": "Movimiento actualizado"
-        }
-
-    def delete_movement(self, movement_id):
-
-        movement = (
-            self.db.query(Movement)
-            .filter(Movement.id == movement_id)
-            .first()
-        )
-
-        if not movement:
-            raise HTTPException(
-                status_code=404,
-                detail="Movimiento no encontrado"
-            )
-
-        self.db.delete(movement)
-
-        self.db.commit()
-
-        return {
-            "message": "Movimiento eliminado"
-        }
+    def delete_movement(self, movement_id: int):
+        db = SessionLocal()
+        try:
+            movement = db.query(Movement).filter(Movement.id == movement_id).first()
+            if not movement:
+                raise HTTPException(status_code=404, detail="Movimiento no encontrado")
+            db.delete(movement)
+            db.commit()
+            return {"message": "Movimiento eliminado"}
+        except HTTPException:
+            raise
+        except Exception as e:
+            db.rollback()
+            raise HTTPException(status_code=500, detail=str(e))
+        finally:
+            db.close()

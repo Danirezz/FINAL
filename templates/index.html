@@ -1,159 +1,152 @@
 <!DOCTYPE html>
 <html lang="es">
- <head>
+<head>
   <meta charset="utf-8"/>
   <meta content="width=device-width,initial-scale=1" name="viewport"/>
-  <title>
-   WBill$ — Your Wallet Your Rules
-  </title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&amp;family=Cinzel:wght@400;600&amp;display=swap" rel="stylesheet"/>
+  <!-- Anti-caché: el navegador NO debe guardar esta página -->
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate"/>
+  <meta http-equiv="Pragma" content="no-cache"/>
+  <meta http-equiv="Expires" content="0"/>
+  <title>WBill$ — Your Wallet Your Rules</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Cinzel:wght@400;600&display=swap" rel="stylesheet"/>
   <link href="/static/css/login.css" rel="stylesheet"/>
- </head>
- <body>
+</head>
+<body>
   <div class="container">
-   <div class="logo-area">
-    <div class="logo-circle">
+    <div class="logo-area">
+      <div class="logo-circle">
         <img src="/static/img/WbillsLOGIN.jpg" alt="logo">
+      </div>
+      <div class="tagline">Your Wallet · Your Rules</div>
     </div>
-    <div class="tagline">
-     Your Wallet · Your Rules
-    </div>
-   </div>
-   <div class="card">
-    <div class="tabs">
-     <button class="tab active" onclick="switchTab('login')">
-      Iniciar sesión
-     </button>
-     <button class="tab" onclick="switchTab('registro')">
-      Crear cuenta
-     </button>
-    </div>
-    <div class="alert" id="alert">
-    </div>
-    <!-- LOGIN -->
-    <div class="form" id="form-login">
-     <div class="field">
-      <div class="label">
-       Correo electrónico
+    <div class="card">
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('login')">Iniciar sesión</button>
+        <button class="tab" onclick="switchTab('registro')">Crear cuenta</button>
       </div>
-      <div class="input-wrap">
-       <span class="icon">
-        ✉
-       </span>
-       <input class="inp" id="l-email" placeholder="tu@correo.com" type="email"/>
-      </div>
-     </div>
-     <div class="field">
-      <div class="label">
-       Contraseña
-      </div>
-      <div class="input-wrap">
-       <span class="icon">
-        🔒
-       </span>
-       <input class="inp" id="l-pass" placeholder="••••••••" type="password"/>
-      </div>
-     </div>
-     <button class="btn-main" id="btn-login" onclick="doLogin()">
-      <span id="login-txt">
-       Entrar a mi cuenta
-      </span>
-      <div class="spinner" id="login-spin">
-      </div>
-     </button>
-     <button class="demo-btn" onclick="goDemo()">
-      🚀 Prueba la demo
-     </button>
-    </div>
-    <!-- REGISTRO -->
-    <div class="form" id="form-registro" style="display:none">
-     <div class="field">
-      <div class="label">
-       Nombre completo
-      </div>
-      <div class="input-wrap">
-       <span class="icon">
-        👤
-       </span>
-       <input class="inp" id="r-name" placeholder="Juan Pérez" type="text"/>
-      </div>
-     </div>
-     <div class="field">
-      <div class="label">
-       Correo electrónico
-      </div>
-      <div class="input-wrap">
-       <span class="icon">
-        ✉
-       </span>
-       <input class="inp" id="r-email" placeholder="tu@correo.com" type="email"/>
-      </div>
-     </div>
-     <div class="field">
-      <div class="label">
-       Contraseña
-      </div>
-      <div class="input-wrap">
-       <span class="icon">
-        🔒
-       </span>
-       <input class="inp" id="r-pass" oninput="checkStr(this.value)" placeholder="Mínimo 8 caracteres" type="password"/>
-      </div>
-      <div class="sw" id="sw">
-       <div class="sbs">
-        <div class="sb" id="s1">
+      <div class="alert" id="alert"></div>
+
+      <!-- LOGIN -->
+      <div class="form" id="form-login">
+        <div class="field">
+          <div class="label">Correo electrónico</div>
+          <div class="input-wrap">
+            <span class="icon">✉</span>
+            <input class="inp" id="l-email" placeholder="tu@correo.com" type="email"
+                   autocomplete="off" autocorrect="off" spellcheck="false"/>
+          </div>
         </div>
-        <div class="sb" id="s2">
+        <div class="field">
+          <div class="label">Contraseña</div>
+          <div class="input-wrap">
+            <span class="icon">🔒</span>
+            <input class="inp" id="l-pass" placeholder="••••••••" type="password"
+                   autocomplete="new-password"/>
+          </div>
         </div>
-        <div class="sb" id="s3">
+        <button class="btn-main" id="btn-login" onclick="doLogin()">
+          <span id="login-txt">Entrar a mi cuenta</span>
+          <div class="spinner" id="login-spin"></div>
+        </button>
+        <button class="demo-btn" onclick="goDemo()">🚀 Prueba la demo</button>
+      </div>
+
+      <!-- REGISTRO -->
+      <div class="form" id="form-registro" style="display:none">
+        <div class="field">
+          <div class="label">Nombre completo</div>
+          <div class="input-wrap">
+            <span class="icon">👤</span>
+            <input class="inp" id="r-name" placeholder="Juan Pérez" type="text"
+                   autocomplete="off"/>
+          </div>
         </div>
-        <div class="sb" id="s4">
+        <div class="field">
+          <div class="label">Correo electrónico</div>
+          <div class="input-wrap">
+            <span class="icon">✉</span>
+            <input class="inp" id="r-email" placeholder="tu@correo.com" type="email"
+                   autocomplete="off"/>
+          </div>
         </div>
-       </div>
-       <div class="slbl" id="slbl">
-       </div>
+        <div class="field">
+          <div class="label">Contraseña</div>
+          <div class="input-wrap">
+            <span class="icon">🔒</span>
+            <input class="inp" id="r-pass" oninput="checkStr(this.value)"
+                   placeholder="Mínimo 8 caracteres" type="password"
+                   autocomplete="new-password"/>
+          </div>
+          <div class="sw" id="sw">
+            <div class="sbs">
+              <div class="sb" id="s1"></div>
+              <div class="sb" id="s2"></div>
+              <div class="sb" id="s3"></div>
+              <div class="sb" id="s4"></div>
+            </div>
+            <div class="slbl" id="slbl"></div>
+          </div>
+        </div>
+        <div class="field">
+          <div class="label">Confirmar contraseña</div>
+          <div class="input-wrap">
+            <span class="icon">🔒</span>
+            <input class="inp" id="r-pass2" placeholder="Repite tu contraseña" type="password"
+                   autocomplete="new-password"/>
+          </div>
+        </div>
+        <button class="btn-main" id="btn-reg" onclick="doReg()">
+          <span id="reg-txt">Crear mi cuenta</span>
+          <div class="spinner" id="reg-spin"></div>
+        </button>
       </div>
-     </div>
-     <div class="field">
-      <div class="label">
-       Confirmar contraseña
+
+      <div class="divider"><span>·</span></div>
+      <div class="footer-note">
+        ¿Olvidaste tu contraseña?
+        <a href="#" onclick="openForgot(); return false;">Recupérala aquí</a>
       </div>
-      <div class="input-wrap">
-       <span class="icon">
-        🔒
-       </span>
-       <input class="inp" id="r-pass2" placeholder="Repite tu contraseña" type="password"/>
-      </div>
-     </div>
-     <button class="btn-main" id="btn-reg" onclick="doReg()">
-      <span id="reg-txt">
-       Crear mi cuenta
-      </span>
-      <div class="spinner" id="reg-spin">
-      </div>
-     </button>
     </div>
-    <div class="divider">
-     <span>
-      ·
-     </span>
+    <div class="page-footer">
+      <div class="icon-sm"><img alt="icon" src="/static/img/favicon.jpg"/></div>
+      <div class="copy">WBill$ © 2026 — Control de gastos</div>
     </div>
-    <div class="footer-note">
-     ¿Olvidaste tu contraseña?
-     <a href="#">
-      Recupérala aquí
-     </a>
-    </div>
-   </div>
-   <div class="page-footer">
-    <div class="icon-sm">
-     <img alt="icon" src="/static/img/favicon.jpg"/>
-    </div>
-    <div class="copy">
-     WBill$ © 2026 — Control de gastos
-    </div>
-   </div>
   </div>
+
+  <!-- MODAL: Recuperar contraseña -->
+  <div id="forgot-modal" style="
+    display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);
+    z-index:999;align-items:center;justify-content:center;">
+    <div style="
+      background:#161616;border:1px solid rgba(201,168,76,.3);
+      border-radius:18px;padding:2rem;width:min(90vw,380px);
+      display:flex;flex-direction:column;gap:14px;">
+      <div style="font-size:16px;font-weight:700;color:#C9A84C;">🔑 Recuperar contraseña</div>
+      <div style="font-size:12px;color:#8B8070;">
+        Ingresa tu correo y te proporcionaremos un token para restablecer tu contraseña.
+      </div>
+      <input id="forgot-email" type="email" autocomplete="off"
+             placeholder="tu@correo.com"
+             style="background:#1e1e1e;border:1px solid rgba(201,168,76,.2);
+                    border-radius:9px;padding:10px 13px;color:#F5F0E8;
+                    font-size:13px;outline:none;font-family:inherit;width:100%;box-sizing:border-box;"/>
+      <div id="forgot-msg" style="font-size:12px;display:none;"></div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="closeForgot()"
+                style="flex:1;padding:10px;background:none;border:1px solid rgba(201,168,76,.2);
+                       border-radius:9px;color:#8B8070;font-size:13px;cursor:pointer;font-family:inherit;">
+          Cancelar
+        </button>
+        <button id="forgot-btn" onclick="doForgot()"
+                style="flex:1;padding:10px;background:linear-gradient(135deg,#8B6914,#C9A84C);
+                       border:none;border-radius:9px;color:#0d0d0d;font-size:13px;
+                       font-weight:700;cursor:pointer;font-family:inherit;">
+          Enviar
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script src="/static/js/login.js"></script>
- </body>
+</body>
 </html>
