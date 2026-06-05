@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, declarative_base
 import os
 
@@ -19,3 +19,15 @@ SessionLocal = sessionmaker(
 )
 
 Base = declarative_base()
+
+
+def run_migrations():
+    """Agrega columnas nuevas a tablas existentes sin borrar datos."""
+    with engine.connect() as conn:
+        # Agregar columna date si no existe
+        try:
+            conn.execute(text("ALTER TABLE movements ADD COLUMN date TEXT"))
+            conn.commit()
+            print("[DB] Columna 'date' agregada a movements")
+        except Exception:
+            pass  # Ya existe, no hacer nada

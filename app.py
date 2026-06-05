@@ -10,7 +10,7 @@ from services.auth_service import AuthService
 from services.mail_service import send_reset_email
 from pathlib import Path
 from schemas.movement_schema import MovementRequest
-from database.connection import engine
+from database.connection import engine, run_migrations
 from database.models import Base
 from services.movement_service import MovementService
 
@@ -21,6 +21,7 @@ auth_service     = AuthService()
 
 app = FastAPI()
 Base.metadata.create_all(bind=engine)
+run_migrations()
 
 BASE_DIR = Path(__file__).resolve().parent
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
