@@ -22,12 +22,27 @@ Base = declarative_base()
 
 
 def run_migrations():
-    """Agrega columnas nuevas a tablas existentes sin borrar datos."""
+    """Agrega columnas/tablas nuevas sin borrar datos existentes."""
     with engine.connect() as conn:
-        # Agregar columna date si no existe
+        # Columna date en movements
         try:
             conn.execute(text("ALTER TABLE movements ADD COLUMN date TEXT"))
             conn.commit()
             print("[DB] Columna 'date' agregada a movements")
         except Exception:
-            pass  # Ya existe, no hacer nada
+            pass
+
+        # Tabla reset_tokens
+        try:
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS reset_tokens (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    token TEXT UNIQUE NOT NULL,
+                    email TEXT NOT NULL,
+                    expires_at REAL NOT NULL
+                )
+            """))
+            conn.commit()
+            print("[DB] Tabla 'reset_tokens' verificada")
+        except Exception:
+            pass

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, Date
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, Text
 from database.connection import Base
 from sqlalchemy.orm import relationship
 
@@ -19,9 +19,18 @@ class Movement(Base):
     __tablename__ = "movements"
 
     id          = Column(Integer, primary_key=True)
-    type        = Column(String)    # 'ingreso' | 'gasto'
-    amount      = Column(Float)     # siempre positivo
+    type        = Column(String)
+    amount      = Column(Float)
     category    = Column(String)
     description = Column(String)
-    date        = Column(String, nullable=True)   # YYYY-MM-DD
+    date        = Column(String, nullable=True)
     user_id     = Column(Integer, ForeignKey("users.id"))
+
+
+class ResetToken(Base):
+    __tablename__ = "reset_tokens"
+
+    id         = Column(Integer, primary_key=True)
+    token      = Column(String, unique=True, index=True)
+    email      = Column(String)
+    expires_at = Column(Float)   # timestamp Unix

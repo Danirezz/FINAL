@@ -1,5 +1,5 @@
 from database.connection import SessionLocal
-from database.models import User
+from database.models import User, ResetToken
 from factories.user_factory import UserFactory
 from strategies.sha256_strategy import SHA256Strategy
 from decorators.log_decorator import log_action
@@ -11,8 +11,6 @@ from observers.logger_observer import LoggerObserver
 import secrets
 import re
 import time
-
-_reset_tokens: dict = {}   # token -> {email, expires}
 
 
 class AuthService:
@@ -50,7 +48,7 @@ class AuthService:
         try:
             if db.query(User).filter(User.email == data.email).first():
                 raise HTTPException(status_code=409, detail="Usuario ya existe")
-            hashed   = self.hash_strategy.hash(data.password)
+            hashed    = self.hash_strategy.hash(data.password)
             user_data = UserFactory.create(data.name, data.email, hashed)
             new_user  = User(
                 name=user_data["name"],
@@ -89,48 +87,70 @@ class AuthService:
     # ── Recuperación de contraseña ─────────────────────────
 
     def generate_reset_token(self, email: str):
-        """Genera y almacena un token de 30 min. Devuelve (token, user_name) o None."""
+        """Genera token y lo guarda en BD (persiste entre reinicios)."""
         db = SessionLocal()
         try:
             user = db.query(User).filter(User.email == email).first()
             if not user:
                 return None
+
+            # Borrar tokens anteriores del mismo usuario
+            db.query(ResetToken).filter(ResetToken.email == email).delete()
+            db.commit()
+
             token = secrets.token_urlsafe(48)
-            _reset_tokens[token] = {
-                "email":   email,
-                "expires": time.time() + 1800   # 30 minutos
-            }
+            rt = ResetToken(
+                token=token,
+                email=email,
+                expires_at=time.time() + 1800  # 30 minutos
+            )
+            db.add(rt)
+            db.commit()
             return token, user.name
+        except Exception as e:
+            db.rollback()
+            raise HTTPException(status_code=500, detail=str(e))
         finally:
             db.close()
 
     def validate_reset_token(self, token: str):
-        """Valida el token. Lanza HTTPException si es inválido o expirado."""
-        entry = _reset_tokens.get(token)
-        if not entry:
-            raise HTTPException(status_code=400, detail="Token inválido o ya utilizado")
-        if time.time() > entry["expires"]:
-            del _reset_tokens[token]
-            raise HTTPException(status_code=400, detail="El enlace expiró. Solicita uno nuevo.")
-        return entry["email"]
+        """Valida token desde BD. Retorna email o lanza HTTPException."""
+        db = SessionLocal()
+        try:
+            rt = db.query(ResetToken).filter(ResetToken.token == token).first()
+            if not rt:
+                raise HTTPException(status_code=400, detail="Token inválido o ya utilizado")
+            if time.time() > rt.expires_at:
+                db.delete(rt)
+                db.commit()
+                raise HTTPException(status_code=400, detail="El enlace expiró. Solicita uno nuevo.")
+            return rt.email
+        except HTTPException:
+            raise
+        finally:
+            db.close()
 
-    def change_password(self, email: str, old_password: str, new_password: str):
-        """Cambia contraseña verificando la contraseña actual primero."""
+    def reset_password(self, token: str, new_password: str):
         if not self.valid_password(new_password):
             raise HTTPException(status_code=400,
                 detail="La contraseña debe tener 8 caracteres, una mayúscula y un número")
 
         db = SessionLocal()
         try:
-            user = db.query(User).filter(User.email == email).first()
+            rt = db.query(ResetToken).filter(ResetToken.token == token).first()
+            if not rt:
+                raise HTTPException(status_code=400, detail="Token inválido o ya utilizado")
+            if time.time() > rt.expires_at:
+                db.delete(rt)
+                db.commit()
+                raise HTTPException(status_code=400, detail="El enlace expiró. Solicita uno nuevo.")
+
+            user = db.query(User).filter(User.email == rt.email).first()
             if not user:
                 raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
-            # Verificar contraseña actual
-            if user.password != self.hash_strategy.hash(old_password):
-                raise HTTPException(status_code=401, detail="Contraseña actual incorrecta")
-
             user.password = self.hash_strategy.hash(new_password)
+            db.delete(rt)  # invalidar token tras uso
             db.commit()
             return {"message": "Contraseña actualizada correctamente"}
         except HTTPException:
@@ -141,9 +161,7 @@ class AuthService:
         finally:
             db.close()
 
-    def reset_password(self, token: str, new_password: str):
-        email = self.validate_reset_token(token)
-
+    def change_password(self, email: str, old_password: str, new_password: str):
         if not self.valid_password(new_password):
             raise HTTPException(status_code=400,
                 detail="La contraseña debe tener 8 caracteres, una mayúscula y un número")
@@ -153,9 +171,10 @@ class AuthService:
             user = db.query(User).filter(User.email == email).first()
             if not user:
                 raise HTTPException(status_code=404, detail="Usuario no encontrado")
+            if user.password != self.hash_strategy.hash(old_password):
+                raise HTTPException(status_code=401, detail="Contraseña actual incorrecta")
             user.password = self.hash_strategy.hash(new_password)
             db.commit()
-            del _reset_tokens[token]   # invalidar token tras uso
             return {"message": "Contraseña actualizada correctamente"}
         except HTTPException:
             raise
